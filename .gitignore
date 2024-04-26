@@ -1,0 +1,5 @@
+bin/
+.env
+.kv
+.kv-shm
+.kv-wal

@@ -1,0 +1,16 @@
+{
+  "tasks": {
+    "dev": "deno run --watch src/main.ts",
+    "start": "deno run --no-prompt --env --allow-env --unstable-kv --allow-read=./.kv,./bin --allow-write=./.kv,./bin --allow-net=127.0.0.1:8080 --watch src/server.ts",
+    "start:prod": "deno run --no-prompt --env --allow-env --unstable-kv --allow-read=./.kv,./bin --allow-write=./.kv,./bin --allow-net=127.0.0.1:8080 src/server.ts",
+    "test": "deno test --env --allow-env --allow-read=./tests/data --allow-net=127.0.0.1:8080 tests/"
+  },
+  "imports": {
+    "@cliffy/command": "jsr:@cliffy/command@^1.0.0-rc.4",
+    "@cliffy/prompt": "jsr:@cliffy/prompt@^1.0.0-rc.4",
+    "@oak/oak": "jsr:@oak/oak@^16.0.0",
+    "@std/fmt": "jsr:@std/fmt@^0.224.0",
+    "@std/log": "jsr:@std/log@^0.224.0",
+    "@std/semver": "jsr:@std/semver@^0.224.0"
+  }
+}
