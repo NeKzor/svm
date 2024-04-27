@@ -1,8 +1,8 @@
 // Copyright (c) 2024, NeKz
 // SPDX-License-Identifier: MIT
 
-import { assert, assertEquals } from "jsr:@std/assert";
-import { encodeHex } from "jsr:@std/encoding/hex";
+import { assert, assertEquals } from "@std/assert";
+import { encodeHex } from "@std/encoding/hex";
 
 Deno.test(async function uploadCanaryWindows() {
   const file = await Deno.readFile("./tests/data/sar.dll");
@@ -11,8 +11,11 @@ Deno.test(async function uploadCanaryWindows() {
   const fileHash2 = encodeHex(await crypto.subtle.digest("SHA-256", file2));
 
   const body = new FormData();
-  body.append("version", "canary");
+  body.append("version", "0.0.0-canary");
+  body.append("sar_version", "0.0.0-canary-0-g0b4c5d07");
   body.append("system", "windows");
+  body.append("commit", "0b4c5d07376ed288fe1d2f18d36065c393474480");
+  body.append("branch", "master");
   body.append("count", "2");
   body.append("hashes[0]", fileHash);
   body.append("hashes[1]", fileHash2);
@@ -56,6 +59,15 @@ Deno.test(async function uploadCanaryWindows() {
   assertEquals(pdb.name, "sar.pdb");
   assertEquals(pdb.hash, fileHash2);
   assert(pdb.date);
+
+  const res3 = await fetch("http://127.0.0.1:8080/api/v1/latest/canary");
+
+  const latest = await res3.json();
+  assert(latest);
+  assertEquals(latest.version, "0.0.0-canary");
+  assertEquals(latest.commit, "0b4c5d07376ed288fe1d2f18d36065c393474480");
+  assertEquals(latest.branch, "master");
+  assert(latest.date);
 });
 
 Deno.test(async function uploadCanaryLinux() {
@@ -63,8 +75,11 @@ Deno.test(async function uploadCanaryLinux() {
   const fileHash = encodeHex(await crypto.subtle.digest("SHA-256", file));
 
   const body = new FormData();
-  body.append("version", "canary");
+  body.append("version", "0.0.0-canary");
+  body.append("sar_version", "0.0.0-canary-0-g0b4c5d07");
   body.append("system", "linux");
+  body.append("commit", "0b4c5d07376ed288fe1d2f18d36065c393474480");
+  body.append("branch", "master");
   body.append("count", "1");
   body.append("hashes[0]", fileHash);
   body.append(
@@ -97,6 +112,15 @@ Deno.test(async function uploadCanaryLinux() {
   assertEquals(so.name, "sar.so");
   assertEquals(so.hash, fileHash);
   assert(so.date);
+
+  const res3 = await fetch("http://127.0.0.1:8080/api/v1/latest/canary");
+
+  const latest = await res3.json();
+  assert(latest);
+  assertEquals(latest.version, "0.0.0-canary");
+  assertEquals(latest.commit, "0b4c5d07376ed288fe1d2f18d36065c393474480");
+  assertEquals(latest.branch, "master");
+  assert(latest.date);
 });
 
 Deno.test(async function uploadSemVerWindows() {
@@ -107,7 +131,10 @@ Deno.test(async function uploadSemVerWindows() {
 
   const body = new FormData();
   body.append("version", "0.0.0");
+  body.append("sar_version", "0.0.0-0-g0b4c5d07");
   body.append("system", "windows");
+  body.append("commit", "0b4c5d07376ed288fe1d2f18d36065c393474480");
+  body.append("branch", "master");
   body.append("count", "2");
   body.append("hashes[0]", fileHash);
   body.append("hashes[1]", fileHash2);
@@ -151,6 +178,15 @@ Deno.test(async function uploadSemVerWindows() {
   assertEquals(pdb.name, "sar.pdb");
   assertEquals(pdb.hash, fileHash2);
   assert(pdb.date);
+
+  const res3 = await fetch("http://127.0.0.1:8080/api/v1/latest");
+
+  const latest = await res3.json();
+  assert(latest);
+  assertEquals(latest.version, "0.0.0");
+  assertEquals(latest.commit, "0b4c5d07376ed288fe1d2f18d36065c393474480");
+  assertEquals(latest.branch, "master");
+  assert(latest.date);
 });
 
 Deno.test(async function uploadSemVerLinux() {
@@ -159,7 +195,10 @@ Deno.test(async function uploadSemVerLinux() {
 
   const body = new FormData();
   body.append("version", "0.0.0");
+  body.append("sar_version", "0.0.0-0-g0b4c5d07");
   body.append("system", "linux");
+  body.append("commit", "0b4c5d07376ed288fe1d2f18d36065c393474480");
+  body.append("branch", "master");
   body.append("count", "1");
   body.append("hashes[0]", fileHash);
   body.append(
@@ -192,4 +231,13 @@ Deno.test(async function uploadSemVerLinux() {
   assertEquals(so.name, "sar.so");
   assertEquals(so.hash, fileHash);
   assert(so.date);
+
+  const res3 = await fetch("http://127.0.0.1:8080/api/v1/latest");
+
+  const latest = await res3.json();
+  assert(latest);
+  assertEquals(latest.version, "0.0.0");
+  assertEquals(latest.commit, "0b4c5d07376ed288fe1d2f18d36065c393474480");
+  assertEquals(latest.branch, "master");
+  assert(latest.date);
 });

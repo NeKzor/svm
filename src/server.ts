@@ -3,18 +3,17 @@
 
 import { Application } from "@oak/oak/application";
 import { Router } from "@oak/oak/router";
-import { Status } from "jsr:@oak/commons/status";
-import { Context } from "jsr:@oak/oak/context";
-import { ResponseBody, ResponseBodyFunction } from "jsr:@oak/oak/response";
-import { timingSafeEqual } from "jsr:@std/crypto/timing-safe-equal";
+import { Status } from "@oak/commons/status";
+import { Context } from "@oak/oak/context";
+import { ResponseBody, ResponseBodyFunction } from "@oak/oak/response";
+import { timingSafeEqual } from "@std/crypto/timing-safe-equal";
+import { join } from "@std/path";
+import { tryParse } from "@std/semver";
+import { BinFolder } from "./constants.ts";
 import { db } from "./db.ts";
 import { logger } from "./logger.ts";
-import { join } from "jsr:@std/path@0.223/join";
-import { encodeHex } from "jsr:@std/encoding/hex";
-import { tryParse } from "@std/semver";
+import { BinaryFile, ReleaseVersion } from "./models.ts";
 import { calcSha256Hash, tryMakeDir } from "./utils.ts";
-import { BinFolder } from "./constants.ts";
-import { BinaryFile } from "./models.ts";
 
 await tryMakeDir(BinFolder);
 
@@ -42,6 +41,13 @@ const Err = (ctx: Context, status: Status, message: string) => {
 const router = new Router();
 
 router.get("/", async (ctx) => {
+  const latest = (await Array.fromAsync(
+    db.list<ReleaseVersion>({ prefix: ["latest"] }),
+    ({ value }) => value,
+  )).sort((a, b) => {
+    return b.date.getTime() - a.date.getTime();
+  });
+
   const binaries = (await Array.fromAsync(
     db.list<Partial<BinaryFile>>({ prefix: ["bin"] }),
     ({ value }) => {
@@ -59,6 +65,15 @@ router.get("/", async (ctx) => {
   ctx.response.body = `<!DOCTYPE html>
     <html>
       <body>
+      <h3>Latest</h3>
+      <ul>${
+    latest.map((version) =>
+      `<li>${version.version} | ${
+        version.date.toISOString().slice(0, 16).replace("T", " ")
+      } | ${version.commit}</li>`
+    ).join("")
+  }</ul>
+      <h3>All</h3>
         <ul>
             ${
     releases.map(([release, bins]) => {
@@ -100,6 +115,14 @@ const textEncoder = new TextEncoder();
 const apiToken = textEncoder.encode(Deno.env.get("API_TOKEN"));
 
 const apiV1 = new Router({ prefix: "/api/v1" });
+
+apiV1.get("/latest/:channel(release|prerelease|canary)?", async (ctx) => {
+  Ok(
+    ctx,
+    (await db.get<ReleaseVersion>(["latest", ctx.params.channel ?? "release"]))
+      .value,
+  );
+});
 
 apiV1.get("/list/:version?/:system?", async (ctx) => {
   Ok(
@@ -146,15 +169,40 @@ apiV1.post("/upload", async (ctx) => {
     return Err(ctx, Status.BadRequest, "Invalid semver version.");
   }
 
+  const sarVersion = data.get("sar_version")?.toString();
+  if (!sarVersion) {
+    return Err(ctx, Status.BadRequest, "Missing SAR version.");
+  }
+
   const system = data.get("system")?.toString();
   if (system !== "windows" && system !== "linux") {
     return Err(ctx, Status.BadRequest, "Invalid system.");
+  }
+
+  const commit = data.get("commit")?.toString();
+  if (!commit) {
+    return Err(ctx, Status.BadRequest, "Missing commit hash.");
+  }
+
+  const branch = data.get("branch")?.toString();
+  if (!branch) {
+    return Err(ctx, Status.BadRequest, "Missing branch name.");
   }
 
   const count = Number(data.get("count"));
   if (isNaN(count) || count <= 0 || count >= 5) {
     return Err(ctx, Status.BadRequest, "Invalid count.");
   }
+
+  const channel = (() => {
+    if (version.includes("-pre")) {
+      return "prerelease";
+    }
+    if (version.includes("-canary")) {
+      return "canary";
+    }
+    return "release";
+  })();
 
   let inserted = 0;
 
@@ -177,7 +225,7 @@ apiV1.post("/upload", async (ctx) => {
       return Err(ctx, Status.BadRequest, "File hash mismatch.");
     }
 
-    const folder = join(BinFolder, version, system);
+    const folder = join(BinFolder, channel, sarVersion, system);
     await tryMakeDir(folder);
 
     const path = join(folder, name);
@@ -190,6 +238,9 @@ apiV1.post("/upload", async (ctx) => {
       hash,
       path,
       date: new Date(),
+      commit,
+      branch,
+      channel,
     } satisfies BinaryFile;
 
     logger.info(bin);
@@ -200,7 +251,19 @@ apiV1.post("/upload", async (ctx) => {
     }
   }
 
-  Ok(ctx, { inserted });
+  const { ok } = await db.set(
+    ["latest", channel],
+    {
+      channel,
+      version,
+      sar_version: sarVersion,
+      commit,
+      branch,
+      date: new Date(),
+    } satisfies ReleaseVersion,
+  );
+
+  Ok(ctx, { inserted, ok });
 });
 
 const app = new Application();

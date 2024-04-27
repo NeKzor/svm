@@ -1,7 +1,7 @@
 // Copyright (c) 2024, NeKz
 // SPDX-License-Identifier: MIT
 
-import { encodeHex } from "jsr:@std/encoding/hex";
+import { encodeHex } from "@std/encoding/hex";
 
 export const tryMakeDir = async (path: string) => {
   try {

@@ -8,4 +8,16 @@ export interface BinaryFile {
   hash: string;
   path: string;
   date: Date;
+  commit: string;
+  branch: string;
+  channel: string;
+}
+
+export interface ReleaseVersion {
+  channel: string;
+  version: string;
+  sar_version: string;
+  commit: string;
+  branch: string;
+  date: Date;
 }
