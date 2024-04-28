@@ -237,6 +237,7 @@ apiV1.post("/upload", async (ctx) => {
       name,
       hash,
       path,
+      size: file.byteLength,
       date: new Date(),
       commit,
       branch,

@@ -89,6 +89,7 @@ for (const release of releases) {
       name,
       hash,
       path,
+      size: file.byteLength,
       date: new Date(Date.parse(asset.created_at)),
       commit,
       branch,

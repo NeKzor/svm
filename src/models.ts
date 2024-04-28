@@ -7,6 +7,7 @@ export interface BinaryFile {
   name: string;
   hash: string;
   path: string;
+  size: number;
   date: Date;
   commit: string;
   branch: string;
