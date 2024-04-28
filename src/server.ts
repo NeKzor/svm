@@ -9,11 +9,12 @@ import { ResponseBody, ResponseBodyFunction } from "@oak/oak/response";
 import { timingSafeEqual } from "@std/crypto/timing-safe-equal";
 import { join } from "@std/path";
 import { tryParse } from "@std/semver";
+import { format } from "@std/fmt/bytes";
 import { BinFolder } from "./constants.ts";
 import { db } from "./db.ts";
 import { logger } from "./logger.ts";
 import { BinaryFile, ReleaseVersion } from "./models.ts";
-import { calcSha256Hash, tryMakeDir } from "./utils.ts";
+import { calcCrc32, calcSha256Hash, tryMakeDir } from "./utils.ts";
 
 await tryMakeDir(BinFolder);
 
@@ -81,7 +82,9 @@ router.get("/", async (ctx) => {
         bins!.map((bin) => {
           return `<li><a href="/${bin.version}/${bin.system}/${bin.name}">${bin.name}</a> | ${
             bin.date.toISOString().slice(0, 16).replace("T", " ")
-          } | ${bin.hash}</li>`;
+          } | ${bin.hash} | ${bin.checksum ?? "?"} | ${
+            bin.size ? format(bin.size) : "?"
+          }</li>`;
         }).join("")
       }</ul></li>`;
     }).join("")
@@ -104,8 +107,8 @@ router.get("/:version/:system(windows|linux)/:name", async (ctx) => {
   }
 
   await ctx.send({
-    root: BinFolder,
-    path: join(bin.version, bin.system, bin.name),
+    root: ".",
+    path: bin.path,
   });
 
   ctx.response.headers.set("X-File-Hash", bin.hash);
@@ -236,12 +239,14 @@ apiV1.post("/upload", async (ctx) => {
       system,
       name,
       hash,
+      checksum: calcCrc32(file),
       path,
       size: file.byteLength,
       date: new Date(),
       commit,
       branch,
       channel,
+      sar_version: sarVersion,
     } satisfies BinaryFile;
 
     logger.info(bin);

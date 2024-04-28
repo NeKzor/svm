@@ -6,12 +6,14 @@ export interface BinaryFile {
   system: string;
   name: string;
   hash: string;
+  checksum: string;
   path: string;
   size: number;
   date: Date;
   commit: string;
   branch: string;
   channel: string;
+  sar_version: string;
 }
 
 export interface ReleaseVersion {

@@ -7,7 +7,7 @@ import { db } from "./db.ts";
 import { GitHubRelease, GitRefTag } from "./github.ts";
 import { logger } from "./logger.ts";
 import { BinaryFile, ReleaseVersion } from "./models.ts";
-import { calcSha256Hash, tryMakeDir } from "./utils.ts";
+import { calcCrc32, calcSha256Hash, tryMakeDir } from "./utils.ts";
 
 const res = await fetch(
   "https://api.github.com/repos/p2sr/SourceAutoRecord/releases",
@@ -88,12 +88,14 @@ for (const release of releases) {
       system,
       name,
       hash,
+      checksum: calcCrc32(file),
       path,
       size: file.byteLength,
       date: new Date(Date.parse(asset.created_at)),
       commit,
       branch,
       channel,
+      sar_version: sarVersion,
     } satisfies BinaryFile;
 
     const { ok } = await db.set(key, bin);
