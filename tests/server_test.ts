@@ -12,7 +12,7 @@ Deno.test(async function uploadCanaryWindows() {
 
   const body = new FormData();
   body.append("version", "0.0.0-canary");
-  body.append("sar_version", "0.0.0-canary-0-g0b4c5d07");
+  body.append("sar_version", "0.0.0-0-g0b4c5d07-canary");
   body.append("system", "windows");
   body.append("commit", "0b4c5d07376ed288fe1d2f18d36065c393474480");
   body.append("branch", "master");
@@ -76,7 +76,7 @@ Deno.test(async function uploadCanaryLinux() {
 
   const body = new FormData();
   body.append("version", "0.0.0-canary");
-  body.append("sar_version", "0.0.0-canary-0-g0b4c5d07");
+  body.append("sar_version", "0.0.0-0-g0b4c5d07-canary");
   body.append("system", "linux");
   body.append("commit", "0b4c5d07376ed288fe1d2f18d36065c393474480");
   body.append("branch", "master");

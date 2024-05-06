@@ -4,7 +4,7 @@ curl -v -D- -X "POST" \
   -H "Authorization: Bearer $(cat .env | grep -oP 'API_TOKEN="\K.*?(?=")')" \
   -H "Content-Type: multipart/form-data" \
   -F "version=$(echo 1.13.0-pre5-0-g0b4c5d07 | awk -F- '{print $1}')-canary" \
-  -F "sar_version=1.13.0-pre5-0-g0b4c5d07" \
+  -F "sar_version=1.13.0-pre5-0-g0b4c5d07-canary" \
   -F "system=windows" \
   -F "commit=0b4c5d07376ed288fe1d2f18d36065c393474480" \
   -F "branch=master" \
