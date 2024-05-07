@@ -198,11 +198,11 @@ apiV1.post("/upload", async (ctx) => {
   }
 
   const channel = (() => {
+    if (version.endsWith("-canary")) {
+      return "canary";
+    }
     if (version.includes("-pre")) {
       return "prerelease";
-    }
-    if (version.includes("-canary")) {
-      return "canary";
     }
     return "release";
   })();
