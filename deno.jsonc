@@ -2,7 +2,7 @@
   "tasks": {
     "dev": "deno run --watch src/main.ts",
     "start": "deno run --no-prompt --env --allow-env --unstable-kv --allow-read=./.kv,./bin --allow-write=./.kv,./bin --allow-net=127.0.0.1:8080 --watch src/server.ts",
-    "start:prod": "deno run --no-prompt --env --allow-env --unstable-kv --allow-read=./.kv,./bin --allow-write=./.kv,./bin --allow-net=127.0.0.1:8080 src/server.ts",
+    "start:prod": "deno run --no-prompt --env --allow-env --unstable-kv --allow-read=./.kv,./bin --allow-write=./.kv,./bin --allow-net=127.0.0.1:8081 src/server.ts",
     "test": "deno test --env --allow-env --allow-read=./tests/data --allow-net=127.0.0.1:8080 tests/"
   },
   "imports": {
