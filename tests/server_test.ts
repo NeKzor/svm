@@ -4,6 +4,9 @@
 import { assert, assertEquals } from "@std/assert";
 import { encodeHex } from "@std/encoding/hex";
 
+const HOST = "http://127.0.0.1:8080";
+const OCTET_STREAM = "application/octet-stream";
+
 Deno.test(async function uploadCanaryWindows() {
   const file = await Deno.readFile("./tests/data/sar.dll");
   const fileHash = encodeHex(await crypto.subtle.digest("SHA-256", file));
@@ -19,18 +22,10 @@ Deno.test(async function uploadCanaryWindows() {
   body.append("count", "2");
   body.append("hashes[0]", fileHash);
   body.append("hashes[1]", fileHash2);
-  body.append(
-    "files[0]",
-    new Blob([file]),
-    "sar.dll",
-  );
-  body.append(
-    "files[1]",
-    new Blob([file2]),
-    "sar.pdb",
-  );
+  body.append("files[0]", new Blob([file]), "sar.dll");
+  body.append("files[1]", new Blob([file2]), "sar.pdb");
 
-  const res = await fetch("http://127.0.0.1:8080/api/v1/upload", {
+  const res = await fetch(`${HOST}/api/v1/upload`, {
     method: "POST",
     headers: {
       Authorization: "Bearer " + Deno.env.get("API_TOKEN"),
@@ -42,7 +37,7 @@ Deno.test(async function uploadCanaryWindows() {
   assert(upload);
   assertEquals(upload.inserted, 2);
 
-  const res2 = await fetch("http://127.0.0.1:8080/api/v1/list/canary/windows");
+  const res2 = await fetch(`${HOST}/api/v1/list/canary/windows`);
 
   const list = await res2.json();
   assert(Array.isArray(list));
@@ -60,7 +55,7 @@ Deno.test(async function uploadCanaryWindows() {
   assertEquals(pdb.hash, fileHash2);
   assert(pdb.date);
 
-  const res3 = await fetch("http://127.0.0.1:8080/api/v1/latest/canary");
+  const res3 = await fetch(`${HOST}/api/v1/latest/canary`);
 
   const latest = await res3.json();
   assert(latest);
@@ -68,6 +63,18 @@ Deno.test(async function uploadCanaryWindows() {
   assertEquals(latest.commit, "0b4c5d07376ed288fe1d2f18d36065c393474480");
   assertEquals(latest.branch, "master");
   assert(latest.date);
+
+  const download = await fetch(`${HOST}/${latest.version}/windows/sar.dll`);
+  assertEquals((await download.arrayBuffer()).byteLength, 16);
+  assertEquals(Number(download.headers.get("X-File-Size") ?? 0), 16);
+  assertEquals(download.headers.get("X-File-Hash"), fileHash);
+  assertEquals(download.headers.get("Content-Type"), OCTET_STREAM);
+
+  const download2 = await fetch(`${HOST}/${latest.version}/windows/sar.pdb`);
+  assertEquals((await download2.arrayBuffer()).byteLength, 16);
+  assertEquals(Number(download2.headers.get("X-File-Size") ?? 0), 16);
+  assertEquals(download2.headers.get("X-File-Hash"), fileHash2);
+  assertEquals(download2.headers.get("Content-Type"), OCTET_STREAM);
 });
 
 Deno.test(async function uploadCanaryLinux() {
@@ -82,13 +89,9 @@ Deno.test(async function uploadCanaryLinux() {
   body.append("branch", "master");
   body.append("count", "1");
   body.append("hashes[0]", fileHash);
-  body.append(
-    "files[0]",
-    new Blob([file]),
-    "sar.so",
-  );
+  body.append("files[0]", new Blob([file]), "sar.so");
 
-  const res = await fetch("http://127.0.0.1:8080/api/v1/upload", {
+  const res = await fetch(`${HOST}/api/v1/upload`, {
     method: "POST",
     headers: {
       Authorization: "Bearer " + Deno.env.get("API_TOKEN"),
@@ -100,7 +103,7 @@ Deno.test(async function uploadCanaryLinux() {
   assert(upload);
   assertEquals(upload.inserted, 1);
 
-  const res2 = await fetch("http://127.0.0.1:8080/api/v1/list/canary/linux");
+  const res2 = await fetch(`${HOST}/api/v1/list/canary/linux`);
 
   const list = await res2.json();
   assert(Array.isArray(list));
@@ -113,7 +116,7 @@ Deno.test(async function uploadCanaryLinux() {
   assertEquals(so.hash, fileHash);
   assert(so.date);
 
-  const res3 = await fetch("http://127.0.0.1:8080/api/v1/latest/canary");
+  const res3 = await fetch(`${HOST}/api/v1/latest/canary`);
 
   const latest = await res3.json();
   assert(latest);
@@ -121,6 +124,12 @@ Deno.test(async function uploadCanaryLinux() {
   assertEquals(latest.commit, "0b4c5d07376ed288fe1d2f18d36065c393474480");
   assertEquals(latest.branch, "master");
   assert(latest.date);
+
+  const download = await fetch(`${HOST}/${latest.version}/linux/sar.so`);
+  assertEquals((await download.arrayBuffer()).byteLength, 13);
+  assertEquals(Number(download.headers.get("X-File-Size") ?? 0), 13);
+  assertEquals(download.headers.get("X-File-Hash"), fileHash);
+  assertEquals(download.headers.get("Content-Type"), OCTET_STREAM);
 });
 
 Deno.test(async function uploadSemVerWindows() {
@@ -138,18 +147,10 @@ Deno.test(async function uploadSemVerWindows() {
   body.append("count", "2");
   body.append("hashes[0]", fileHash);
   body.append("hashes[1]", fileHash2);
-  body.append(
-    "files[0]",
-    new Blob([file]),
-    "sar.dll",
-  );
-  body.append(
-    "files[1]",
-    new Blob([file2]),
-    "sar.pdb",
-  );
+  body.append("files[0]", new Blob([file]), "sar.dll");
+  body.append("files[1]", new Blob([file2]), "sar.pdb");
 
-  const res = await fetch("http://127.0.0.1:8080/api/v1/upload", {
+  const res = await fetch(`${HOST}/api/v1/upload`, {
     method: "POST",
     headers: {
       Authorization: "Bearer " + Deno.env.get("API_TOKEN"),
@@ -161,7 +162,7 @@ Deno.test(async function uploadSemVerWindows() {
   assert(upload);
   assertEquals(upload.inserted, 2);
 
-  const res2 = await fetch("http://127.0.0.1:8080/api/v1/list/0.0.0/windows");
+  const res2 = await fetch(`${HOST}/api/v1/list/0.0.0/windows`);
 
   const list = await res2.json();
   assert(Array.isArray(list));
@@ -179,7 +180,7 @@ Deno.test(async function uploadSemVerWindows() {
   assertEquals(pdb.hash, fileHash2);
   assert(pdb.date);
 
-  const res3 = await fetch("http://127.0.0.1:8080/api/v1/latest");
+  const res3 = await fetch(`${HOST}/api/v1/latest`);
 
   const latest = await res3.json();
   assert(latest);
@@ -187,6 +188,18 @@ Deno.test(async function uploadSemVerWindows() {
   assertEquals(latest.commit, "0b4c5d07376ed288fe1d2f18d36065c393474480");
   assertEquals(latest.branch, "master");
   assert(latest.date);
+
+  const download = await fetch(`${HOST}/${latest.version}/windows/sar.dll`);
+  assertEquals((await download.arrayBuffer()).byteLength, 16);
+  assertEquals(Number(download.headers.get("X-File-Size") ?? 0), 16);
+  assertEquals(download.headers.get("X-File-Hash"), fileHash);
+  assertEquals(download.headers.get("Content-Type"), OCTET_STREAM);
+
+  const download2 = await fetch(`${HOST}/${latest.version}/windows/sar.pdb`);
+  assertEquals((await download2.arrayBuffer()).byteLength, 16);
+  assertEquals(Number(download2.headers.get("X-File-Size") ?? 0), 16);
+  assertEquals(download2.headers.get("X-File-Hash"), fileHash2);
+  assertEquals(download2.headers.get("Content-Type"), OCTET_STREAM);
 });
 
 Deno.test(async function uploadSemVerLinux() {
@@ -201,13 +214,9 @@ Deno.test(async function uploadSemVerLinux() {
   body.append("branch", "master");
   body.append("count", "1");
   body.append("hashes[0]", fileHash);
-  body.append(
-    "files[0]",
-    new Blob([file]),
-    "sar.so",
-  );
+  body.append("files[0]", new Blob([file]), "sar.so");
 
-  const res = await fetch("http://127.0.0.1:8080/api/v1/upload", {
+  const res = await fetch(`${HOST}/api/v1/upload`, {
     method: "POST",
     headers: {
       Authorization: "Bearer " + Deno.env.get("API_TOKEN"),
@@ -219,7 +228,7 @@ Deno.test(async function uploadSemVerLinux() {
   assert(upload);
   assertEquals(upload.inserted, 1);
 
-  const res2 = await fetch("http://127.0.0.1:8080/api/v1/list/0.0.0/linux");
+  const res2 = await fetch(`${HOST}/api/v1/list/0.0.0/linux`);
 
   const list = await res2.json();
   assert(Array.isArray(list));
@@ -232,7 +241,7 @@ Deno.test(async function uploadSemVerLinux() {
   assertEquals(so.hash, fileHash);
   assert(so.date);
 
-  const res3 = await fetch("http://127.0.0.1:8080/api/v1/latest");
+  const res3 = await fetch(`${HOST}/api/v1/latest`);
 
   const latest = await res3.json();
   assert(latest);
@@ -240,4 +249,10 @@ Deno.test(async function uploadSemVerLinux() {
   assertEquals(latest.commit, "0b4c5d07376ed288fe1d2f18d36065c393474480");
   assertEquals(latest.branch, "master");
   assert(latest.date);
+
+  const download = await fetch(`${HOST}/${latest.version}/linux/sar.so`);
+  assertEquals((await download.arrayBuffer()).byteLength, 13);
+  assertEquals(Number(download.headers.get("X-File-Size") ?? 0), 13);
+  assertEquals(download.headers.get("X-File-Hash"), fileHash);
+  assertEquals(download.headers.get("Content-Type"), OCTET_STREAM);
 });

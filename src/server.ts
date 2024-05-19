@@ -109,8 +109,14 @@ router.get("/:version/:system(windows|linux)/:name", async (ctx) => {
   await ctx.send({
     root: ".",
     path: bin.path,
+    contentTypes: {
+      ".dll": "application/octet-stream",
+      ".so": "application/octet-stream",
+      ".pdb": "application/octet-stream",
+    },
   });
 
+  ctx.response.headers.set("X-File-Size", bin.size.toString());
   ctx.response.headers.set("X-File-Hash", bin.hash);
 });
 
