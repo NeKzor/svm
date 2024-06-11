@@ -1,4 +1,7 @@
+.vim/
+.vscode/
 bin/
+node_modules/
 .env
 .kv
 .kv-shm

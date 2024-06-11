@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "test": "node canary_test.js"
+  },
+  "devDependencies": {
+    "@types/github-script": "github:actions/github-script"
+  }
+}
