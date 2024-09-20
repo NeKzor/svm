@@ -16,7 +16,7 @@ import { installLogger, logger } from "./logger.ts";
 import { BinaryFile, ReleaseVersion } from "./models.ts";
 import { calcCrc32, calcSha256Hash, tryMakeDir } from "./utils.ts";
 
-installLogger('server.log');
+installLogger("server.log");
 
 await tryMakeDir(BinFolder);
 
@@ -65,33 +65,97 @@ router.get("/", async (ctx) => {
     Object.groupBy(binaries, ({ version }) => version),
   );
 
+  const latestHtml = latest.map((version) =>
+    `<tr><td>${version.version}</td><td>${
+      version.date.toISOString().slice(0, 16).replace("T", " ")
+    }</td><td><a href="https://github.com/p2sr/SourceAutoRecord/commit/${version.commit}">${version.commit}</a></td></tr>`
+  ).join("");
+
+  const binariesHtml = releases.map(([release, bins]) => {
+    return `<tr><td colspan="5">${release}</td></tr><tr>${
+      bins!.map((bin) => {
+        return `<tr><td><a href="/${bin.version}/${bin.system}/${bin.name}">${bin.name}</a></td><td class="date">${
+          bin.date.toISOString().slice(0, 16).replace("T", " ")
+        }</td><td>${bin.hash}</td><td>${bin.checksum ?? "?"}</td><td>${
+          bin.size ? format(bin.size) : "?"
+        }</td></tr>`;
+      }).join("")
+    }</tr>`;
+  }).join("");
+
   ctx.response.body = `<!DOCTYPE html>
-    <html>
+    <html lang='en' dir='ltr' class="theme-dark">
+      <head>
+        <meta charSet="utf-8"/>
+        <meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no"/>
+        <meta name="referrer" content="no-referrer"/>
+        <meta name="theme-color" content="#14161a"/>
+        <meta name="title" content="Latest SAR"/>
+        <title>Latest SAR | dl.sar.portal2.sr</title>
+        <meta name="description" content="Download SAR binaries"/>
+        <link rel="preconnect" href="https://fonts.googleapis.com"/>
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..600&amp;display=swap" rel="stylesheet"/>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css" integrity="sha384-tl5h4XuWmVzPeVWU0x8bx0j/5iMwCBduLEgZ+2lH4Wjda+4+q3mpCww74dgAB3OX" crossorigin="anonymous">
+        <style>
+          footer {
+            padding: 10px !important;
+          }
+          table {
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+          }
+        </style>
+      <head>
       <body>
-      <h3>Latest</h3>
-      <ul>${
-    latest.map((version) =>
-      `<li>${version.version} | ${
-        version.date.toISOString().slice(0, 16).replace("T", " ")
-      } | ${version.commit}</li>`
-    ).join("")
-  }</ul>
-      <h3>All</h3>
-        <ul>
-            ${
-    releases.map(([release, bins]) => {
-      return `<li>${release}<ul>${
-        bins!.map((bin) => {
-          return `<li><a href="/${bin.version}/${bin.system}/${bin.name}">${bin.name}</a> | ${
-            bin.date.toISOString().slice(0, 16).replace("T", " ")
-          } | ${bin.hash} | ${bin.checksum ?? "?"} | ${
-            bin.size ? format(bin.size) : "?"
-          }</li>`;
-        }).join("")
-      }</ul></li>`;
-    }).join("")
-  }
-        </ul>
+        <main class="py-4 px-4">
+          <div class="columns mt-2">
+            <div class="column is-narrow"></div>
+            <div class="column auto">
+              <h1 class="title">SAR Downloads</h1>
+              <h4 class="subtitle mt-6 mb-2">Latest</h4>
+              <div>
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Version</th>
+                      <th>Date</th>
+                      <th>Commit</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${latestHtml}
+                  </tbody>
+                </table>
+              </div>
+              <h4 class="subtitle mt-6 mb-2">Binaries</h4>
+              <div>
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th></th>
+                      <th>Date</th>
+                      <th>SHA-256</th>
+                      <th>CRC-32</th>
+                      <th>Size</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${binariesHtml}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </main>
+        <footer class="footer">
+          <div class="content has-text-centered">
+            <p>
+              © 2024 <a href="https://portal2.sr">portal2.sr</a>
+            </p>
+          </div>
+        </footer>
       </body>
     </html>
   `;
@@ -286,8 +350,8 @@ app.use(router.allowedMethods());
 app.use(apiV1.routes());
 app.use(apiV1.allowedMethods());
 
-const hostname = Deno.env.get("SERVER_HOST") ?? '127.0.0.1';
-const port = Number(Deno.env.get("SERVER_PORT") ?? '8080');
+const hostname = Deno.env.get("SERVER_HOST") ?? "127.0.0.1";
+const port = Number(Deno.env.get("SERVER_PORT") ?? "8080");
 
 console.log(`listening on http://${hostname}:${port}`);
 
