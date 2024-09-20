@@ -12,9 +12,11 @@ import { tryParse } from "@std/semver";
 import { format } from "@std/fmt/bytes";
 import { BinFolder } from "./constants.ts";
 import { db } from "./db.ts";
-import { logger } from "./logger.ts";
+import { installLogger, logger } from "./logger.ts";
 import { BinaryFile, ReleaseVersion } from "./models.ts";
 import { calcCrc32, calcSha256Hash, tryMakeDir } from "./utils.ts";
+
+installLogger('server.log');
 
 await tryMakeDir(BinFolder);
 
@@ -284,8 +286,8 @@ app.use(router.allowedMethods());
 app.use(apiV1.routes());
 app.use(apiV1.allowedMethods());
 
-const hostname = Deno.env.get("SERVER_HOST")!;
-const port = Number(Deno.env.get("SERVER_PORT")!);
+const hostname = Deno.env.get("SERVER_HOST") ?? '127.0.0.1';
+const port = Number(Deno.env.get("SERVER_PORT") ?? '8080');
 
 console.log(`listening on http://${hostname}:${port}`);
 

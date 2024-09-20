@@ -1,3 +1,8 @@
+.git/
+tests/
+
+# from .gitignore
+
 .vim/
 .vscode/
 bin/

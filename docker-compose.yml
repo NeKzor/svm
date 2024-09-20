@@ -1,0 +1,8 @@
+version: "3.8"
+services:
+  server:
+    container_name: "dl-sar"
+    restart: always
+    volumes:
+      - /app/bin
+      - /app/kv

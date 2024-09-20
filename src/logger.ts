@@ -69,7 +69,7 @@ const fileFormatter: _log.FormatterFunction = (
   }`;
 };
 
-export const installLogger = (moduleName: string) => {
+export const installLogger = (filename: string) => {
   _log.setup({
     handlers: {
       console: new _log.ConsoleHandler("DEBUG", {
@@ -79,17 +79,7 @@ export const installLogger = (moduleName: string) => {
       infoLog: new FileLogger("DEBUG", {
         maxBytes: 100 * 1024 * 1024,
         maxBackupCount: 7,
-        filename: `/logs/server/${
-          moduleName !== "server" ? `${moduleName}_` : ""
-        }info.log`,
-        formatter: fileFormatter,
-      }),
-      errorLog: new FileLogger("ERROR", {
-        maxBytes: 100 * 1024 * 1024,
-        maxBackupCount: 7,
-        filename: `/logs/server/${
-          moduleName !== "server" ? `${moduleName}_` : ""
-        }error.log`,
+        filename,
         formatter: fileFormatter,
       }),
     },
