@@ -4,8 +4,6 @@ EXPOSE 8080
 
 WORKDIR /app
 
-USER deno
-
 COPY . .
 RUN deno install -e src/server.ts
 
