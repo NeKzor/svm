@@ -1,8 +1,11 @@
 version: "3.8"
 services:
   server:
-    container_name: "dl-sar"
+    image: "svm-server"
+    build:
+      context: .
+    container_name: "svm-server"
     restart: always
     volumes:
-      - /app/bin
-      - /app/kv
+      - /var/svm/bin:/app/bin
+      - /var/svm/kv:/app/kv
