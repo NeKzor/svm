@@ -5,8 +5,6 @@ services:
       context: .
     container_name: "svm-server"
     restart: always
-    ports:
-      - 8080:8080
     volumes:
       - /var/svm/bin:/app/bin
       - /var/svm/kv:/app/kv
