@@ -1,9 +1,9 @@
-const script = require("./canary.js");
+const upload = require("./upload.js");
 
-script({
-  github: {},
+upload({
+  release: false,
   context: {
-    sha: "6992be6ae3b72b08918a1deb75761f587e82e32a",
+    sha: "9da99e993d7797f6533114abc44b23583070f089",
     ref: "refs/heads/master",
   },
   core: {

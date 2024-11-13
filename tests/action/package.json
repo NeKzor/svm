@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "test": "node canary_test.js"
+    "test": "node --env-file=.env upload_test.js"
   },
   "devDependencies": {
     "@types/github-script": "github:actions/github-script"

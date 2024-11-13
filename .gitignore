@@ -8,3 +8,6 @@ node_modules/
 .kv-shm
 .kv-wal
 server.log
+sar.so
+sar.dll
+sar.pdb
